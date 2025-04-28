@@ -7,9 +7,104 @@ from llm import generate_response
 from data import create_sample_evaluation_data
 from metrics import get_metrics_descriptions
 
+def display_sidebar_params():
+    """サイドバーにハイパーパラメータ用スライダーを表示し、値を返す"""
+    st.sidebar.markdown("## パラメータ設定")
+    max_new_tokens = st.sidebar.slider(
+        "max_new_tokens",    # ラベル
+        min_value=16,        # 最小
+        max_value=512,       # 最大
+        value=128,           # デフォルト
+        step=16,
+        key="param_max_tokens",
+    )
+    temperature = st.sidebar.slider(
+        "temperature",
+        min_value=0.1,
+        max_value=1.0,
+        value=0.7,
+        step=0.05,
+        key="param_temperature",
+    )
+    top_p = st.sidebar.slider(
+        "top_p",
+        min_value=0.1,
+        max_value=1.0,
+        value=0.9,
+        step=0.05,
+        key="param_top_p",
+    )
+    batch_size = st.sidebar.slider(
+        "batch_size",
+        min_value=1,
+        max_value=8,
+        value=1,
+        step=1,
+        key="param_batch_size",
+    )
+    return max_new_tokens, temperature, top_p, batch_size
+
+def display_theme_selector():
+    """サイドバーにライト／ダーク／システムテーマの選択肢を出し、CSSを注入する"""
+    theme = st.sidebar.radio(
+        "テーマを選択",
+        ["システム設定", "ライト", "ダーク"],
+        index=0,
+        key="theme_selector"
+    )
+
+    if theme == "ライト":
+        # ライトモード用のCSS
+        st.markdown(
+            """
+            <style>
+            /* 背景とテキスト色をライトに */
+            body, [data-testid="stAppViewContainer"] {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+    elif theme == "ダーク":
+        # ダークモード用のCSS
+        st.markdown(
+            """
+            <style>
+            /* 背景とテキスト色をダークに */
+            body, [data-testid="stAppViewContainer"] {
+                background-color: #0E1117 !important;
+                color: #FFFFFF !important;
+            }
+            /* サイドバーも暗く */
+            [data-testid="stSidebar"] {
+                background-color: #262730 !important;
+            }
+            /* サイドバーとその子要素のテキストを白に */
+            [data-testid="stSidebar"],
+            [data-testid="stSidebar"] * {
+                color: #FFFFFF !important;
+            }
+            /* サイドバー内のリンクも白く */
+            [data-testid="stSidebar"] a {
+                color: #FFFFFF !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
 # --- チャットページのUI ---
 def display_chat_page(pipe):
+
+    #サイドバーのスライダーからパラメータを取得
+    max_new_tokens, temperature, top_p, batch_size = display_sidebar_params()
+
     """チャットページのUIを表示する"""
+    display_theme_selector()
+
     st.subheader("質問を入力してください")
     user_question = st.text_area("質問", key="question_input", height=100, value=st.session_state.get("current_question", ""))
     submit_button = st.button("質問を送信")
@@ -31,7 +126,15 @@ def display_chat_page(pipe):
         st.session_state.feedback_given = False # フィードバック状態もリセット
 
         with st.spinner("モデルが回答を生成中..."):
-            answer, response_time = generate_response(pipe, user_question)
+            #answer, response_time = generate_response(pipe, user_question)
+            answer, response_time = generate_response(
+                pipe,
+                user_question,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                top_p=top_p,
+                batch_size=batch_size
+            )
             st.session_state.current_answer = answer
             st.session_state.response_time = response_time
             # ここでrerunすると回答とフィードバックが一度に表示される

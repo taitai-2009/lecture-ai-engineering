@@ -31,18 +31,44 @@ def load_model():
         st.error("GPUメモリ不足の可能性があります。不要なプロセスを終了するか、より小さいモデルの使用を検討してください。")
         return None
 
-def generate_response(pipe, user_question):
+#def generate_response(pipe, user_question):
+def generate_response(
+    pipe,
+    user_question: str,
+    max_new_tokens: int = 128,
+    temperature: float = 0.7,
+    top_p: float = 0.9,
+    batch_size: int = 1
+):
+    """
+    Args:
+      pipe: Transformers text-generation pipeline
+      user_question: 入力文字列
+      max_new_tokens, temperature, top_p, batch_size: UIから渡される各種パラメータ
+    Returns:
+      (生成テキスト, 応答時間[s])
+    """
     """LLMを使用して質問に対する回答を生成する"""
     if pipe is None:
         return "モデルがロードされていないため、回答を生成できません。", 0
 
     try:
         start_time = time.time()
-        messages = [
-            {"role": "user", "content": user_question},
-        ]
+        #messages = [
+        #    {"role": "user", "content": user_question},
+        #]
+        messages = user_question
         # max_new_tokensを調整可能にする（例）
-        outputs = pipe(messages, max_new_tokens=512, do_sample=True, temperature=0.7, top_p=0.9)
+        #outputs = pipe(messages, max_new_tokens=512, do_sample=True, temperature=0.7, top_p=0.9)
+        # UI から渡された max_new_tokens, temperature, top_p, batch_size を適用
+        outputs = pipe(
+            messages,
+            max_new_tokens=max_new_tokens,
+            do_sample=True,
+            temperature=temperature,
+            top_p=top_p,
+            batch_size=batch_size
+        )
 
         # Gemmaの出力形式に合わせて調整が必要な場合がある
         # 最後のassistantのメッセージを取得
