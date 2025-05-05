@@ -1,0 +1,6 @@
+脆弱性発生タイムラインは、2025年3月12日から15日にかけてtj-actions/changed-filesのタグが悪意あるコミットに差し替えられ、3月14日 StepSecurityが異常検知、3月15日 GitHubがリポジトリを一時非公開化し3月17日にv46.0.1がリリースされた。
+攻撃手法と漏洩情報は、index.jsに外部Gistからmemdump.pyをダウンロード・実行するコードが注入され、RunnerのメモリをダンプしてAWSキー、GitHub PAT、npmトークン、RSA鍵などをログに書き出した。
+検出・診断方法は、GitHubコード検索でtj-actions/changed-filesの使用箇所を特定し、Falco ActionsやHarden-Runnerで外部接続を監視し、ログからBase64二重エンコード文字列を抽出してシークレットパターンを検査する。
+修正内容は、悪意あるGist取得・実行処理をindex.jsから削除し、action.ymlで外部スクリプト読み込みを禁止、全タグを安全なコミットに再ポイントしてv46.0.1以降をリリースした。
+公式アドバイザリは、CVE-2025-30066、GHSA-MRRH-FWG8-R2C3、CISAアラート「Supply Chain Compromise of Third-Party tj-actions/changed-files」（2025-03-18公開）。
+影響を受けた組織は、espressif/arduino-esp32、chains-project/maven-lockfile、rackerlabs/genestack、modal-labs/modal-examplesなど約23,000リポジトリが使用し、公開ログ保持プロジェクトで漏洩が多発し、StepSecurityやAqua Securityが詳細レポートを公開。
