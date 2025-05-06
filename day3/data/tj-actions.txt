@@ -1,0 +1,6 @@
+脆弱性発生タイムラインは、2025年3月12日から15日にかけて tj-actions/changed-files のタグが全て悪意あるコミットに差し替えられ、回帰的に改ざんされたことがCISAからのアラートとして発出。3月14日17:00UTC StepSecurityが異常検知、問題の調査を開始。3月14日20:30UTC 複数の公開リポジトリでシークレット漏洩が確認されていることを、Aqua Security がブログで速報。3月15日 GitHubが影響を受けた Action レポジトリを一時的に非公開化し、3月17日に悪意あるコードが除去されたパッチバージョン v46.0.1 がリリースされた。
+攻撃手法と漏洩情報は、攻撃者は index.js に Node.js で書かれた関数を注入し、外部 Gist から memdump.py をダウンロード・実行。GitHub Runner のメモリをダンプし、環境変数やプロセス中のシークレットを抽出してビルドログに出力した。この時、AWSキー、GitHub PAT、npmトークン、RSA鍵などをビルドログに書き出した。
+検出・診断方法は、GitHubコード検索で tj-actions/changed-files の使用箇所を特定し、Falco ActionsやHarden-Runnerで外部接続を監視し、CI/CD ワークフローで gist.githubusercontent.com への不審な外部接続をリアルタイム検出するモジュールを導入する。ログからBase64二重エンコード文字列を抽出して、出力内に AKIA… や ghp_… などのシークレットパターンが含まれていないかを検査する。
+修正内容は、悪意あるGist取得・実行処理をindex.jsから削除し、action.ymlで外部スクリプト読み込みを禁止、全タグを安全なコミットに再ポイントしてv46.0.1以降をリリースした。
+公式アドバイザリは、CVE-2025-30066、CVE-2025-30154、GHSA-MRRH-FWG8-R2C3、CISAアラート「Supply Chain Compromise of Third-Party tj-actions/changed-files」（2025-03-18公開）。
+影響範囲は、23,000 以上のリポジトリで tj-actions/changed-files が使用されており、公開ビルドログを持つプロジェクトは特にリスクが高い。影響を受けた組織は、espressif/arduino-esp32、chains-project/maven-lockfile、rackerlabs/genestack、modal-labs/modal-examplesなど約23,000リポジトリが使用し、公開ログ保持プロジェクトで漏洩が多発し、StepSecurityやAqua Securityが詳細レポートを公開している。
