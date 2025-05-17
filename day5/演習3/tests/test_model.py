@@ -7,7 +7,7 @@ import time
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
@@ -162,7 +162,6 @@ def test_model_inference_time(train_model):
 
 def test_model_inference_time_detail(train_model):
     """1サンプルごとの推論時間分布を確認"""
-    import numpy as np
 
     model, X_test, _ = train_model
     times = []
@@ -174,7 +173,9 @@ def test_model_inference_time_detail(train_model):
         times.append(end - start)
     mean_time = np.mean(times)
     max_time = np.max(times)
-    print(f"1サンプルあたりの平均推論時間: {mean_time*1000:.3f} ms, 最大: {max_time*1000:.3f} ms")
+    print(
+        f"1サンプルあたりの平均推論時間: {mean_time*1000:.3f} ms, 最大: {max_time*1000:.3f} ms"
+    )
     assert mean_time < 0.05, f"平均推論時間が長すぎます: {mean_time:.3f}秒"
 
 
